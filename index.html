@@ -1,65 +1,98 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>金鸿集团账单</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
       background: #f5f6fa;
-      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Helvetica Neue", Arial;
+      padding: 40px;
     }
-    .box {
-      max-width: 720px;
+
+    .card {
+      max-width: 900px;
       margin: auto;
       background: #fff;
-      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
     }
+
     h1 {
-      text-align: center;
-      margin-bottom: 10px;
+      margin-top: 0;
+      font-size: 26px;
     }
+
+    button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      background: #fafafa;
+    }
+
     pre {
-      background: #f0f2f5;
-      padding: 15px;
+      background: #f3f4f6;
+      padding: 16px;
       border-radius: 8px;
-      white-space: pre-wrap;
-      line-height: 1.6;
-      font-size: 14px;
-    }
-    .tip {
-      margin-top: 12px;
+      max-height: 500px;
+      overflow: auto;
       font-size: 13px;
-      color: #888;
-      text-align: center;
+    }
+
+    .line {
+      font-family: monospace;
+      margin: 2px 0;
     }
   </style>
 </head>
 <body>
 
-<div class="box">
+<div class="card">
   <h1>📒 金鸿集团账单</h1>
 
-  <pre>
-01:24:09 30900 / 13.5 = 2288.89U  DH-亿子
-02:20:58 20592 / 13.5 = 1525.33U  FY-阿和🔥🔥
-07:22:27 31900 / 13.5 = 2362.96U  DH-刀子
-13:03:41 10199 / 13.5 = 755.48U   SF-海头
+  <p>
+    <button onclick="loadData()">刷新账单</button>
+  </p>
 
-———————————————
-总入款：102291 | 7577.11U
-总下发：370.37U
-未下发：7206.74U
-  </pre>
-
-  <div class="tip">
-    本页面由记账机器人自动生成（示例）<br>
-    实时账单请以群内机器人为准
-  </div>
+  <pre id="output">正在加载数据…</pre>
 </div>
+
+<script>
+async function loadData() {
+  const out = document.getElementById("output");
+  out.textContent = "加载中…";
+
+  try {
+    const res = await fetch("/api/records");
+    const data = await res.json();
+
+    if (!data.records || data.records.length === 0) {
+      out.textContent = "暂无记录";
+      return;
+    }
+
+    let text = "";
+    text += "记录数：" + data.count + "\\n";
+    text += "----------------------------------\\n";
+
+    data.records.forEach(r => {
+      text += `${r.ts}  ${r.amount_cny} / ${r.rate} = ${r.amount_usdt}U  ${r.who}\\n`;
+    });
+
+    out.textContent = text;
+
+  } catch (e) {
+    out.textContent = "加载失败：" + e;
+  }
+}
+
+loadData();
+</script>
 
 </body>
 </html>
