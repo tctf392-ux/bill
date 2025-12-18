@@ -1,143 +1,88 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <title>金鸿集团账单</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-            background: #f5f7fb;
-            padding: 30px;
-        }
-        .card {
-            max-width: 1100px;
-            margin: auto;
-            background: #fff;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,.08);
-        }
-        h1 {
-            margin: 0 0 20px;
-        }
-        button {
-            padding: 8px 14px;
-            border: none;
-            background: #1677ff;
-            color: #fff;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-        }
-        th, td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-        }
-        th {
-            background: #fafafa;
-        }
-        .green {
-            color: #16a34a;
-        }
-        .gray {
-            color: #999;
-        }
-        .filter {
-            margin-bottom: 16px;
-        }
-        input {
-            padding: 6px 10px;
-            margin-right: 8px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>金鸿集团账单</title>
+<style>
+body {
+    background:#f5f7fb;
+    font-family: Arial;
+}
+.box {
+    width: 1100px;
+    margin: 50px auto;
+    background:#fff;
+    padding:30px;
+    border-radius:10px;
+}
+h1 {
+    margin-bottom:20px;
+}
+button {
+    padding:8px 16px;
+}
+table {
+    width:100%;
+    border-collapse: collapse;
+    margin-top:20px;
+}
+th, td {
+    border-bottom:1px solid #eee;
+    padding:8px;
+    text-align:center;
+}
+</style>
 </head>
 <body>
 
-<div class="card">
+<div class="box">
     <h1>📒 金鸿集团账单</h1>
 
-    <div class="filter">
-        开始日期：
-        <input type="date" id="start">
-        结束日期：
-        <input type="date" id="end">
-        <button onclick="loadData()">查询</button>
-    </div>
+    <button onclick="loadData()">刷新账单</button>
 
-    <h3>入款</h3>
     <table>
         <thead>
             <tr>
                 <th>时间</th>
-                <th>金额(CNY)</th>
+                <th>CNY</th>
                 <th>汇率</th>
                 <th>USDT</th>
                 <th>人员</th>
             </tr>
         </thead>
-        <tbody id="in-body"></tbody>
-    </table>
-
-    <h3 style="margin-top:30px;">下发</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>时间</th>
-                <th>USDT</th>
-                <th>人员</th>
-            </tr>
-        </thead>
-        <tbody id="out-body"></tbody>
+        <tbody id="tbody">
+            <tr><td colspan="5">加载中...</td></tr>
+        </tbody>
     </table>
 </div>
 
 <script>
-async function loadData() {
-    let start = document.getElementById("start").value;
-    let end = document.getElementById("end").value;
+function loadData(){
+    fetch("/api/records")
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("tbody");
+            tbody.innerHTML = "";
 
-    let url = "/api/records";
-    if (start && end) {
-        url += `?start=${start}&end=${end}`;
-    }
+            if(data.records.length === 0){
+                tbody.innerHTML = "<tr><td colspan='5'>暂无数据</td></tr>";
+                return;
+            }
 
-    const res = await fetch(url);
-    const data = await res.json();
-
-    const inBody = document.getElementById("in-body");
-    const outBody = document.getElementById("out-body");
-    inBody.innerHTML = "";
-    outBody.innerHTML = "";
-
-    data.records.forEach(r => {
-        if (r.type === "in") {
-            inBody.innerHTML += `
-                <tr>
+            data.records.forEach(r => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
                     <td>${r.ts}</td>
-                    <td class="green">${r.amount_cny}</td>
+                    <td>${r.amount_cny}</td>
                     <td>${r.rate || "-"}</td>
-                    <td class="green">${r.amount_usdt.toFixed(2)}</td>
-                    <td>${r.who || ""}</td>
-                </tr>
-            `;
-        } else if (r.type === "out") {
-            outBody.innerHTML += `
-                <tr>
-                    <td>${r.ts}</td>
-                    <td class="gray">${r.amount_usdt.toFixed(2)}</td>
-                    <td>${r.who || ""}</td>
-                </tr>
-            `;
-        }
-    });
+                    <td>${r.amount_usdt.toFixed(2)}</td>
+                    <td>${r.who}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
 }
 
-// 页面打开自动加载
 loadData();
 </script>
 
