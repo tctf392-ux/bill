@@ -3,66 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <title>金鸿集团账单</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
             background: #f5f7fb;
-            margin: 0;
-            padding: 40px;
+            padding: 30px;
         }
         .card {
             max-width: 1100px;
             margin: auto;
             background: #fff;
-            border-radius: 14px;
-            padding: 30px;
+            border-radius: 12px;
+            padding: 24px;
             box-shadow: 0 10px 30px rgba(0,0,0,.08);
         }
         h1 {
             margin: 0 0 20px;
         }
-        .toolbar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        input, button {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-        }
         button {
-            cursor: pointer;
+            padding: 8px 14px;
+            border: none;
             background: #1677ff;
             color: #fff;
-            border: none;
-        }
-        button.secondary {
-            background: #555;
+            border-radius: 6px;
+            cursor: pointer;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 16px;
         }
         th, td {
             padding: 10px;
             border-bottom: 1px solid #eee;
-            text-align: left;
+            text-align: center;
         }
         th {
             background: #fafafa;
         }
         .green {
-            color: #0a8f3c;
+            color: #16a34a;
         }
-        .muted {
-            color: #888;
+        .gray {
+            color: #999;
         }
-        .section {
-            margin-top: 30px;
+        .filter {
+            margin-bottom: 16px;
+        }
+        input {
+            padding: 6px 10px;
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -71,22 +61,17 @@
 <div class="card">
     <h1>📒 金鸿集团账单</h1>
 
-    <div class="toolbar">
-        <label>开始日期：
-            <input type="date" id="startDate">
-        </label>
-        <label>结束日期：
-            <input type="date" id="endDate">
-        </label>
+    <div class="filter">
+        开始日期：
+        <input type="date" id="start">
+        结束日期：
+        <input type="date" id="end">
         <button onclick="loadData()">查询</button>
-        <button class="secondary" onclick="resetDate()">刷新账单</button>
     </div>
 
-    <!-- 入款 -->
-    <div class="section">
-        <h2>入款</h2>
-        <table>
-            <thead>
+    <h3>入款</h3>
+    <table>
+        <thead>
             <tr>
                 <th>时间</th>
                 <th>金额(CNY)</th>
@@ -94,79 +79,65 @@
                 <th>USDT</th>
                 <th>人员</th>
             </tr>
-            </thead>
-            <tbody id="inTable"></tbody>
-        </table>
-    </div>
+        </thead>
+        <tbody id="in-body"></tbody>
+    </table>
 
-    <!-- 下发 -->
-    <div class="section">
-        <h2>下发</h2>
-        <table>
-            <thead>
+    <h3 style="margin-top:30px;">下发</h3>
+    <table>
+        <thead>
             <tr>
                 <th>时间</th>
                 <th>USDT</th>
                 <th>人员</th>
             </tr>
-            </thead>
-            <tbody id="outTable"></tbody>
-        </table>
-    </div>
+        </thead>
+        <tbody id="out-body"></tbody>
+    </table>
 </div>
 
 <script>
-function resetDate() {
-    document.getElementById("startDate").value = "";
-    document.getElementById("endDate").value = "";
-    loadData();
-}
+async function loadData() {
+    let start = document.getElementById("start").value;
+    let end = document.getElementById("end").value;
 
-function loadData() {
     let url = "/api/records";
-    const start = document.getElementById("startDate").value;
-    const end = document.getElementById("endDate").value;
-
     if (start && end) {
         url += `?start=${start}&end=${end}`;
     }
 
-    fetch(url)
-        .then(res => res.json())
-        .then(data => render(data.records))
-        .catch(err => alert("接口错误：" + err));
-}
+    const res = await fetch(url);
+    const data = await res.json();
 
-function render(records) {
-    const inTable = document.getElementById("inTable");
-    const outTable = document.getElementById("outTable");
-    inTable.innerHTML = "";
-    outTable.innerHTML = "";
+    const inBody = document.getElementById("in-body");
+    const outBody = document.getElementById("out-body");
+    inBody.innerHTML = "";
+    outBody.innerHTML = "";
 
-    records.forEach(r => {
+    data.records.forEach(r => {
         if (r.type === "in") {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${r.ts}</td>
-                <td class="green">${r.amount_cny}</td>
-                <td>${r.rate && r.rate > 0 ? r.rate : "-"}</td>
-                <td class="green">${Number(r.amount_usdt).toFixed(2)}</td>
-                <td>${r.who || ""}</td>
+            inBody.innerHTML += `
+                <tr>
+                    <td>${r.ts}</td>
+                    <td class="green">${r.amount_cny}</td>
+                    <td>${r.rate || "-"}</td>
+                    <td class="green">${r.amount_usdt.toFixed(2)}</td>
+                    <td>${r.who || ""}</td>
+                </tr>
             `;
-            inTable.appendChild(tr);
         } else if (r.type === "out") {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${r.ts}</td>
-                <td class="green">${Number(r.amount_usdt).toFixed(2)}</td>
-                <td>${r.who || ""}</td>
+            outBody.innerHTML += `
+                <tr>
+                    <td>${r.ts}</td>
+                    <td class="gray">${r.amount_usdt.toFixed(2)}</td>
+                    <td>${r.who || ""}</td>
+                </tr>
             `;
-            outTable.appendChild(tr);
         }
     });
 }
 
-// 页面加载自动拉一次
+// 页面打开自动加载
 loadData();
 </script>
 
