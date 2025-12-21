@@ -1,0 +1,33 @@
+{
+  "title": "金鸿集团记账机器人",
+  "updated_at": "2025-12-21 13:22:09",
+  "records": [
+    {
+      "type": "in",
+      "amount_cny": 500.0,
+      "amount_usdt": 0.0,
+      "rate": 0.0,
+      "who": "李",
+      "remark": "",
+      "ts": "2025-12-21 05:00:25"
+    },
+    {
+      "type": "in",
+      "amount_cny": 500.0,
+      "amount_usdt": 0.0,
+      "rate": 0.0,
+      "who": "李",
+      "remark": "",
+      "ts": "2025-12-21 05:31:45"
+    },
+    {
+      "type": "in",
+      "amount_cny": 5200.0,
+      "amount_usdt": 0.0,
+      "rate": 0.0,
+      "who": "李",
+      "remark": "",
+      "ts": "2025-12-21 13:22:09"
+    }
+  ]
+}
